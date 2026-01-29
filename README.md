@@ -1,37 +1,45 @@
-# 🧾 Smart-Journaling-Assistant
+# 📝 Smart Journaling Assistant
 
-Product Goal To create an easy-to-use, AI-powered journaling app to help users journal consistently and provide meaningful insights.
+An intelligent journaling platform that doesn't just store your thoughts—it understands them. Using AI to "tidy up" messy thoughts, track emotional trends, and provide weekly insights to help you grow.
 
+# 🔗 Links
+* ![Live Demo:]()
+
+# 📸 Screenshots
+* The Editor (AI Tidy-Up)
+* Mood Calendar View
+* Weekly Insights Dashboard
+ 
 ## 🌟 Features
 
-* **Smart OCR Upload:** Snap a photo or upload a receipt to automatically extract merchant, date, and amount.
-* **AI Categorization:** Automatically sorts expenses into 8 distinct categories (Food, Transport, Bills, etc.) using Claude/OpenAI.
-* **Budget Management:** Set a monthly spending limit and track your progress with a visual progress bar.
-* **Visual Dashboard:** Quick glance at total spending, recent receipts, and simple expenditure charts.
-* **PDF Export:** Generate and download professional summaries of your expenses.
-* **Secure Auth:** Powered by Supabase Auth for a seamless and secure login experience.
+* **AI Tidy-Up:** Transforms messy, stream-of-consciousness notes into clear, well-structured journal entries using Claude API.
+* **Mood Detection:** Automatically detects one of 9 moods from your writing to track your emotional well-being.
+* **Auto-Categorization:** Sorts entries into 5 core categories (Personal, Work, Health, etc.) for better organization.
+* **Mood Calendar:** A color-coded visual overview of your emotional journey throughout the month.
+* **Weekly Insights:** AI-generated summaries that analyze your weekly entries to identify patterns and progress.
+* **Smart Search & Filter:** Quickly find past entries by mood, category, or keywords.
 
 ## 🛠 Tech Stack
 
-| Layer          | Technology                               |
-| :------------- | :--------------------------------------- |
-| **Frontend** | React.js, Next.js (App Router), Tailwind |
-| **Backend** | Express.js / Next.js API Routes          |
-| **Database** | PostgreSQL via Supabase                  |
-| **Auth** | Supabase Auth                            |
-| **AI/OCR** | Claude API / OpenAI API                  |
-| **Deployment** | Vercel                                   |
+| Layer          | Technology                                     |
+| :------------- | :--------------------------------------------- |
+| **Frontend** | React.js, Next.js 14 (App Router), TailwindCSS |
+| **Backend** | Express.js / Next.js API Routes                |
+| **Database** | PostgreSQL (via Supabase)                      |
+| **Auth** | Supabase Auth                                  |
+| **AI Engine** | Claude API (Anthropic) / OpenAI                |
+| **Deployment** | Vercel                                         |
 
 ## 🚀 Getting Started
 
-### Prerequisites
-* Node.js (Latest LTS)
-* Supabase Account & Project API Keys
-* OpenAI or Anthropic API Key
-
-### Installation
-
-1. **Clone the repository:**
-   ```bash
-   git clone [https://github.com/your-username/receipt-manager.git](https://github.com/your-username/receipt-manager.git)
-   cd receipt-manager
+### 1. Project Initialization
+This project was started using the standard template:
+```bash
+npx create-next-app@latest my-project --typescript --tailwind --app
+npm install @supabase/supabase-js @anthropic-ai/sdk lucide-react
+```
+## 📅 Development Timeline
+* Day 1-2: Project Setup, Auth integration, and Basic Journal CRUD.
+* Day 3-4: AI Tidy-up integration (Before/After view) and Mood Detection.
+* Day 5-6: Mood Calendar implementation and Weekly Insights engine.
+* Day 7: Final Testing, UI Polishing, and Vercel Deployment.

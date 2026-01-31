@@ -8,7 +8,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, Link } from "react-router-dom";
 
 export default function Register() {
     const [email, setEmail] = useState("");
@@ -38,7 +38,7 @@ export default function Register() {
     };
 
     return (
-        <div className="flex items-center justify-center min-h-screen bg-slate-50">
+        <div className="flex items-center justify-center min-h-screen bg-background px-4 transition-colors duration-300">
             <Card className="w-full max-w-md">
 
                 {/* Header */}
@@ -80,7 +80,10 @@ export default function Register() {
                         </Button>
                         <p
                             className="self-end text-right text-sm text-muted-foreground">
-                            Already have an account? <a href="/login" className="text-blue-500">Login</a>
+                            Already have an account?
+                            <Link to="/login" className="text-indigo-500 hover:underline">
+                                Login
+                            </Link>
                         </p>
                     </CardFooter>
                 </form>

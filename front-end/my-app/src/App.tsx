@@ -24,9 +24,11 @@ function App() {
           {/* AUTH ROUTES (No Header) */}
 
           {/* Public Routes */}
-          <Route path="/login" element={<Login />} />
-          <Route path="/register" element={<Register />} />
-          {/* <Route path="/test" element={<Home />} />           */}
+          <Route element={<MainLayout />}>
+            <Route path="/login" element={<Login />} />
+            <Route path="/register" element={<Register />} />
+            {/* <Route path="/test" element={<Home />} />           */}
+          </Route>
 
           {/* Private Routes */}
           <Route element={<ProtectedRoute />}>

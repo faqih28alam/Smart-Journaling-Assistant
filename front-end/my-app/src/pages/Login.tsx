@@ -2,14 +2,13 @@
 // src/pages/Login.tsx
 
 import { useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, Link } from "react-router-dom";
 import { supabase } from "@/lib/supabaseClient";
 // Shadcn Components
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
-// import { toast } from "sonner"
 
 export default function Login() {
   const [email, setEmail] = useState("");
@@ -36,10 +35,10 @@ export default function Login() {
   };
 
   return (
-    <div className="flex items-center justify-center min-h-screen bg-slate-50">
-      <Card className="w-full max-w-md">
+    <div className="flex items-center justify-center min-h-screen bg-background px-4 transition-colors duration-300">
+      <Card className="w-full max-w-md border-border shadow-lg">
         <CardHeader>
-          <CardTitle className="text-2xl text-center">Journal App</CardTitle>
+          <CardTitle className="text-2xl text-center text-foreground">Journal App</CardTitle>
           <CardDescription className="text-center">
             Enter your credentials to access your account
           </CardDescription>
@@ -74,7 +73,10 @@ export default function Login() {
             </Button>
             <p
               className="self-end text-right text-sm text-muted-foreground">
-              Don&apos;t have an account? <a href="/register" className="text-blue-500">Register</a>
+              Don&apos;t have an account?
+              <Link to="/register" className="text-indigo-500 hover:underline">
+                Register
+              </Link>
             </p>
           </CardFooter>
         </form>

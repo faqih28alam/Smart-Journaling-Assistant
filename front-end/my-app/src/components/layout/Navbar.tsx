@@ -4,7 +4,7 @@
 import { supabase } from "@/lib/supabaseClient";
 import { Button } from "@/components/ui/button";
 import { useNavigate } from "react-router-dom";
-import { LogOut, User } from "lucide-react"; // Nice icons
+import { LogOut, User, Moon, Sun } from "lucide-react"; // Nice icons
 
 export default function Navbar() {
   const navigate = useNavigate();
@@ -12,6 +12,10 @@ export default function Navbar() {
   const handleSignOut = async () => {
     await supabase.auth.signOut();
     navigate("/login");
+  };
+
+  const handleToggleDarkMode = () => {
+    document.documentElement.classList.toggle("dark");
   };
 
   return (
@@ -30,14 +34,26 @@ export default function Navbar() {
               <User className="w-4 h-4 mr-2" />
               Profile
             </Button>
-            <Button 
-              variant="destructive" 
-              size="sm" 
+            <Button
+              variant="destructive"
+              size="sm"
               onClick={handleSignOut}
               className="bg-red-50 text-red-600 hover:bg-red-100 border-none shadow-none"
             >
               <LogOut className="w-4 h-4 mr-2" />
               Sign Out
+            </Button>
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={handleToggleDarkMode}
+              className="text-muted-foreground"
+            >
+              {document.documentElement.classList.contains("dark") ? (
+                <Sun className="w-4 h-4 mr-2" />
+              ) : (
+                <Moon className="w-4 h-4 mr-2" />
+              )}
             </Button>
           </div>
         </div>

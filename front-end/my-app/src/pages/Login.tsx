@@ -9,6 +9,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
+// import { toast } from "sonner"
 
 export default function Login() {
   const [email, setEmail] = useState("");
@@ -34,18 +35,6 @@ export default function Login() {
     setLoading(false);
   };
 
-  const handleSignUp = async () => {
-    setLoading(true);
-    const { error } = await supabase.auth.signUp({
-      email,
-      password,
-    });
-
-    if (error) alert(error.message);
-    else alert("Check your email or try logging in if you disabled confirmation!");
-    setLoading(false);
-  };
-
   return (
     <div className="flex items-center justify-center min-h-screen bg-slate-50">
       <Card className="w-full max-w-md">
@@ -55,7 +44,7 @@ export default function Login() {
             Enter your credentials to access your account
           </CardDescription>
         </CardHeader>
-        <form onSubmit={handleLogin}>
+        <form className="space-y-4" onSubmit={handleLogin}>
           <CardContent className="space-y-4">
             <div className="space-y-2">
               <Label htmlFor="email">Email</Label>
@@ -83,15 +72,10 @@ export default function Login() {
             <Button type="submit" className="w-full" disabled={loading}>
               {loading ? "Processing..." : "Login"}
             </Button>
-            <Button 
-                type="button" 
-                variant="outline" 
-                className="w-full" 
-                onClick={handleSignUp}
-                disabled={loading}
-            >
-              Create Account
-            </Button>
+            <p
+              className="self-end text-right text-sm text-muted-foreground">
+              Don&apos;t have an account? <a href="/register" className="text-blue-500">Register</a>
+            </p>
           </CardFooter>
         </form>
       </Card>

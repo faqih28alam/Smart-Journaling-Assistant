@@ -10,7 +10,7 @@ import MainLayout from "./components/layout/MainLayout"
 import { ThemeProviderWrapper } from "./components/theme-provider"
 
 import { BrowserRouter, Routes, Route } from 'react-router-dom'
-import ProtectedRoute from './components/ProtectedRoute' // The gatekeeper component
+import ProtectedRoute from './components/ProtectedRoute'            // The gatekeeper component
 import { Navigate } from "react-router-dom"
 
 //function for router

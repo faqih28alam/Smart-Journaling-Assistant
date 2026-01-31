@@ -7,7 +7,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { toast } from "sonner"
 import { supabase } from "@/lib/supabaseClient";
-import { Clock, Trash2 } from "lucide-react";
+import { Clock, Trash2, Mic, MicOff } from "lucide-react";
 
 // Define the shape of an entry based on schema
 interface Entry {
@@ -20,6 +20,7 @@ const Home = () => {
     const [content, setContent] = useState<string>('');
     const [isSaving, setIsSaving] = useState(false);
     const [entries, setEntries] = useState<Entry[]>([]);
+    const [isListening, setIsListening] = useState(false);
 
     // --- FETCH LOGIC ---
     const fetchEntries = async () => {
@@ -97,6 +98,40 @@ const Home = () => {
         }
     };
 
+    // ---- Handle Voice Input ----
+    const handleVoiceInput = async () => {
+        // Check if browser supports Speech Recognition
+        const SpeechRecognition = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
+
+        if (!SpeechRecognition) {
+            alert("Your browser does not support voice input.");
+            toast.error("Your browser does not support voice input.");
+            return;
+        }
+
+        const recognition = new SpeechRecognition();
+        recognition.continuous = false; // Stop when the user stops talking
+        recognition.interimResults = false; // Only final results
+        // recognition.lang = 'en-US'; // change this to 'id-ID' if needed
+        recognition.lang = 'id-ID';
+
+        recognition.onstart = () => setIsListening(true);
+        recognition.onend = () => setIsListening(false);
+
+        recognition.onresult = (event: any) => {
+            const transcript = event.results[0][0].transcript;
+            // Append transcript to existing content
+            setContent(prev => prev ? `${prev} ${transcript}` : transcript);
+        };
+
+        recognition.onerror = (event: any) => {
+            console.error("Speech Recognition Error:", event.error);
+            setIsListening(false);
+        };
+
+        recognition.start();
+    };
+
     return (
 
         <div className="max-w-2xl mx-auto space-y-6 pt-10 px-4 min-h-screen bg-background text-foreground transition-colors duration-300">
@@ -110,6 +145,7 @@ const Home = () => {
 
             {/* Main Input Area */}
             <div className="relative group">
+                {/* Text Area */}
                 <Textarea
                     className="min-h-[300px] p-5 text-lg rounded-2xl shadow-sm border-2 transition-all focus-visible:ring-indigo-500"
                     placeholder="What's on your mind today?"
@@ -117,6 +153,24 @@ const Home = () => {
                     onChange={(e) => setContent(e.target.value)}
                     disabled={isSaving}
                 />
+
+                {/* Voice Input Button */}
+                <div className="absolute bottom-4 left-4 flex gap-2">
+                    <Button
+                        type="button"
+                        variant={isListening ? "destructive" : "secondary"}
+                        size="sm"
+                        onClick={handleVoiceInput}
+                        className="rounded-full h-10 w-10 flex items-center justify-center animate-pulse-slow cursor-pointer"
+                    >
+                        {isListening ? <MicOff className="w-5 h-5" /> : <Mic className="w-5 h-5" />}
+                    </Button>
+                    {isListening && (
+                        <span className="text-xs text-red-500 font-medium animate-pulse flex items-center">
+                            Listening...
+                        </span>
+                    )}
+                </div>
 
                 <div className="absolute bottom-4 right-4 text-xs text-muted-foreground font-mono bg-background/80 backdrop-blur-sm px-2 py-1 rounded border">
                     {content.length} characters

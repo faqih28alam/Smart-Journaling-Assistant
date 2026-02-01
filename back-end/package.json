@@ -16,8 +16,10 @@
     "bcrypt": "^6.0.0",
     "cors": "^2.8.6",
     "express": "^5.2.1",
+    "groq-sdk": "^0.37.0",
     "joi": "^18.0.2",
-    "jsonwebtoken": "^9.0.3"
+    "jsonwebtoken": "^9.0.3",
+    "openai": "^6.17.0"
   },
   "devDependencies": {
     "@types/bcrypt": "^6.0.0",

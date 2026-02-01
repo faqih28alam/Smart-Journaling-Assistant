@@ -1,14 +1,15 @@
 // app-route.ts 
 // src/routes/app-route.ts
 
-// import express from 'express';
+import express from 'express';
 
-// // Controllers
-// import { handleLogin, handleRegister, checkAuth, updateProfile } from '../controllers/auth-controller';
+// Controllers
+import { handleTidyUp, handleSaveToDatabase } from '../controllers/app-controller';
 
-// const router = express.Router();
+const router = express.Router();
 
-// // Routes
-// router.post('/login', handleLogin)
+// Routes
+router.post('/tidy', handleTidyUp)
+router.post('/save-entry', handleSaveToDatabase)
 
-// export default router;
+export default router;

@@ -15,6 +15,10 @@ app.use(corsMiddleware);
 
 // Routes
 app.use('/api', appRoutes);
+// Add this above your global error handler
+app.get('/', (req, res) => {
+    res.send('Backend Server is running! Use /api for routes.');
+});
 
 // global error handler: middleware for any unexpected errors 
 app.use((err: any, req: any, res: any, next: any) => {

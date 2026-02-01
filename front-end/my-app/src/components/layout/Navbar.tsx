@@ -5,7 +5,7 @@ import { useEffect, useState } from "react";
 import { supabase } from "@/lib/supabaseClient";
 import { Button } from "@/components/ui/button";
 import { useNavigate } from "react-router-dom";
-import { LogOut, User, Moon, Sun } from "lucide-react"; // Nice icons
+import { LogOut, User, Moon, Sun, BookOpen } from "lucide-react"; // Nice icons
 
 export default function Navbar() {
   const navigate = useNavigate();
@@ -41,10 +41,8 @@ export default function Navbar() {
         <div className="flex justify-between h-16 items-center">
           {/* Logo Section */}
           <div className="flex items-center gap-2">
-            <div className="w-8 h-8 bg-indigo-600 rounded-lg flex items-center justify-center">
-              <span className="text-white font-bold">J</span>
-            </div>
-            <span className="font-bold text-xl tracking-tight">JournalAI</span>
+            <BookOpen className="w-6 h-6 text-primary" />
+            <span className="text-xl font-bold">Journal App</span>
           </div>
 
           <div className="flex items-center gap-4">

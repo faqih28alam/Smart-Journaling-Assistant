@@ -4,6 +4,7 @@
 import Login from "./pages/Login"
 import Register from "./pages/Register"
 import Home from "./pages/Home"
+import LandingPage from "./pages/LandingPage"
 
 // Components
 import MainLayout from "./components/layout/MainLayout"
@@ -24,6 +25,7 @@ function App() {
           {/* AUTH ROUTES (No Header) */}
 
           {/* Public Routes */}
+          <Route path="/" element={<LandingPage />} />
           <Route element={<MainLayout />}>
             <Route path="/login" element={<Login />} />
             <Route path="/register" element={<Register />} />

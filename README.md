@@ -1,3 +1,5 @@
+![App Preview](https://github.com/faqih28alam/Smart-Journaling-Assistant/blob/main/media/Journal-App.gif)
+
 # 📝 Smart Journaling Assistant
 
 An intelligent journaling platform that doesn't just store your thoughts—it understands them. Using AI to "tidy up" messy thoughts, track emotional trends, and provide weekly insights to help you grow.

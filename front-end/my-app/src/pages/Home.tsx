@@ -13,6 +13,10 @@ import { Clock, Trash2, Mic, MicOff } from "lucide-react";
 interface Entry {
     id: string;
     rawContent: string;
+    tidyContent?: string;
+    mood?: string;
+    category?: string;
+    isTidied?: boolean;
     createdAt: string;
 }
 
@@ -21,6 +25,11 @@ const Home = () => {
     const [isSaving, setIsSaving] = useState(false);
     const [entries, setEntries] = useState<Entry[]>([]);
     const [isListening, setIsListening] = useState(false);
+    const [aiSuggestion, setAiSuggestion] = useState<{
+        tidyContent: string;
+        mood: any;
+        category: any;
+    } | null>(null);
 
     // --- FETCH LOGIC ---
     const fetchEntries = async () => {
@@ -29,7 +38,7 @@ const Home = () => {
 
         const { data, error } = await supabase
             .from('Entry')
-            .select('id, rawContent, createdAt')
+            .select('id, rawContent, tidyContent, mood, category, createdAt, isTidied')
             .eq('userId', user.id)
             .order('createdAt', { ascending: false })
             .limit(5); // Show only last 5
@@ -43,34 +52,72 @@ const Home = () => {
         fetchEntries();
     }, []);
 
-    // --- SAVE LOGIC ---
-    const handleSave = async () => {
+    // --- Handle Tidy Up ---
+    const handleTidyUp = async () => {
         if (!content.trim()) return;
         setIsSaving(true);
+        const toastId = toast.loading("AI is analyzing and tidying...");
 
         try {
-            // Get current authenticated user
-            const { data: { user }, error: userError } = await supabase.auth.getUser();
-            if (userError || !user) throw new Error("Please log in again.");
+            // We call Express backend (Step 2)
+            // This endpoint calls AI but DOES NOT save to DB yet
+            const response = await fetch(`${import.meta.env.VITE_BACKEND_URL}/api/tidy`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ text: content })
+            });
 
-            // Insert into "Entry" (matching exact SQL Table name)
-            const { error } = await supabase.from('Entry').insert([
-                {
-                    rawContent: content,  // Matching your schema's camelCase
-                    userId: user.id      // Matching your schema's camelCase
-                }
-            ]);
+            const data = await response.json();
 
-            if (error) throw error;
-
-            // Success feedback
-            toast.success("Entry saved!, Your thoughts are locked in.");
-            setContent('');
-            fetchEntries(); // Refresh list after saving
+            // Step 3: Show the AI version in the UI
+            setAiSuggestion(data);
+            toast.success("AI version ready!", { id: toastId });
 
         } catch (error: any) {
-            console.error(error);
-            toast.error(error.message || "Failed to save");
+            console.error("FULL ERROR:", error.response?.data || error.message);
+            toast.error(error.message || "AI processing failed", { id: toastId });
+        } finally {
+            setIsSaving(false);
+        }
+    };
+
+    // ---- Handle Save ----
+    const handleFinalSave = async (useAiVersion: boolean) => {
+        setIsSaving(true);
+        try {
+            // Get the current user ID first
+            const { data: { user } } = await supabase.auth.getUser();
+            if (!user) {
+                toast.error("You must be logged in to save.");
+                return;
+            }
+            const payload = {
+                userId: user.id,
+                rawContent: content,
+                tidyContent: useAiVersion ? aiSuggestion?.tidyContent : null,
+                mood: useAiVersion ? aiSuggestion?.mood : 'NEUTRAL',
+                category: useAiVersion ? aiSuggestion?.category : 'PERSONAL',
+                isTidied: useAiVersion
+            };
+
+            // Send to Express to save via Prisma
+            const response = await fetch(`${import.meta.env.VITE_BACKEND_URL}/api/save-entry`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(payload)
+            });
+
+            if (!response.ok) {
+                const errorData = await response.json();
+                throw new Error(errorData.error || "Database save failed");
+            }
+
+            toast.success("Saved to your journal!");
+            setAiSuggestion(null);
+            setContent('');
+            fetchEntries();         // Refresh the list
+        } catch (error) {
+            toast.error("Failed to save");
         } finally {
             setIsSaving(false);
         }
@@ -177,15 +224,55 @@ const Home = () => {
                 </div>
             </div>
 
-            {/* Save Button */}
-            <Button
-                onClick={handleSave}
-                disabled={!content.trim() || isSaving}
-                className="w-full py-7 rounded-xl font-bold text-lg shadow-lg shadow-indigo-500/20 dark:shadow-indigo-900/40"
-                size="lg"
-            >
-                {isSaving ? 'Locking it in...' : '✨ Tidy Up with AI'}
-            </Button>
+            {/* AI Suggestion Card */}
+            {aiSuggestion && (
+                <div className="animate-in fade-in slide-in-from-top-4 duration-300">
+                    <Card className="border-indigo-500 bg-indigo-50/50 shadow-md">
+                        <CardContent className="pt-4 space-y-3">
+                            <div className="flex items-center justify-between">
+                                <h4 className="font-bold text-indigo-700 flex items-center gap-2">
+                                    ✨ AI Suggestion
+                                </h4>
+                                <span className="text-[10px] font-bold bg-indigo-100 text-indigo-700 px-2 py-0.5 rounded uppercase">
+                                    {aiSuggestion.mood} | {aiSuggestion.category}
+                                </span>
+                            </div>
+
+                            <p className="text-sm text-gray-800 leading-relaxed italic">
+                                "{aiSuggestion.tidyContent}"
+                            </p>
+
+                            <div className="flex gap-3 mt-4">
+                                <Button
+                                    className="flex-1 bg-indigo-600 hover:bg-indigo-700"
+                                    onClick={() => handleFinalSave(true)}
+                                >
+                                    Accept AI Version
+                                </Button>
+                                <Button
+                                    variant="outline"
+                                    className="flex-1"
+                                    onClick={() => handleFinalSave(false)}
+                                >
+                                    Keep My Raw Version
+                                </Button>
+                            </div>
+                        </CardContent>
+                    </Card>
+                </div>
+            )}
+
+            {/* Tidy Up with AI Button */}
+            {!aiSuggestion && (
+                <Button
+                    onClick={handleTidyUp}
+                    disabled={!content.trim() || isSaving}
+                    className="w-full py-7 rounded-xl font-bold text-lg shadow-lg shadow-indigo-500/20 dark:shadow-indigo-900/40"
+                    size="lg"
+                >
+                    {isSaving ? 'Locking it in...' : '✨ Tidy Up with AI'}
+                </Button>
+            )}
 
             {/* Recent Activity Section */}
             <div className="pt-10 border-t border-border">
@@ -197,7 +284,7 @@ const Home = () => {
                     {entries.length === 0 ? (
                         <Card className="border-dashed bg-muted/50">
                             <CardContent className="py-10 text-center text-gray-400 italic text-sm">
-                                Your previous entries will appear here...
+                                You haven&apos;t made any entries yet.
                             </CardContent>
                         </Card>
                     ) : (
@@ -207,6 +294,16 @@ const Home = () => {
                                     <div className="flex items-center text-xs text-muted-foreground gap-2">
                                         <Clock className="w-3 h-3" />
                                         {new Date(entry.createdAt).toLocaleDateString()} at {new Date(entry.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                                        {entry.mood && (
+                                            <span className="px-2 py-0.5 rounded text-[10px] font-bold bg-indigo-50 text-indigo-600 uppercase">
+                                                {entry.mood}
+                                            </span>
+                                        )}
+                                        {entry.category && (
+                                            <span className="px-2 py-0.5 rounded text-[10px] font-bold bg-slate-100 text-slate-600 uppercase">
+                                                {entry.category}
+                                            </span>
+                                        )}
                                     </div>
 
                                     {/* Delete Button */}

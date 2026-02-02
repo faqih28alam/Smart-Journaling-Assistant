@@ -317,7 +317,7 @@ const Home = () => {
                                 </CardHeader>
                                 <CardContent className="p-4 pt-2">
                                     <p className="text-sm text-card-foreground line-clamp-3 leading-relaxed">
-                                        {entry.rawContent}
+                                        {entry.isTidied ? entry.tidyContent : entry.rawContent}
                                     </p>
                                 </CardContent>
                             </Card>

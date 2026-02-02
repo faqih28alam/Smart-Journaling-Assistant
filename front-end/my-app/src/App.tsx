@@ -5,6 +5,7 @@ import Login from "./pages/Login"
 import Register from "./pages/Register"
 import Home from "./pages/Home"
 import LandingPage from "./pages/LandingPage"
+import Dashboard from "./pages/Dashboard"
 
 // Components
 import MainLayout from "./components/layout/MainLayout"
@@ -36,6 +37,7 @@ function App() {
           <Route element={<ProtectedRoute />}>
             <Route element={<MainLayout />}>
               <Route path="/home" element={<Home />} />
+              <Route path="/dashboard" element={<Dashboard />} />
             </Route>
           </Route>
 

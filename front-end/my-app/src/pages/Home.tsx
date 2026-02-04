@@ -34,6 +34,7 @@ const Home = () => {
     } | null>(null);
 
     // --- FETCH LOGIC ---
+    // Fetch recent entries
     const fetchEntries = async () => {
         const { data: { user } } = await supabase.auth.getUser();
         if (!user) return;
@@ -48,8 +49,6 @@ const Home = () => {
         if (error) console.error("Error fetching:", error.message);
         else setEntries(data || []);
     };
-
-    // Fetch entries on component mount
     useEffect(() => {
         fetchEntries();
     }, []);
@@ -159,6 +158,7 @@ const Home = () => {
         recognition.start();
     };
 
+    // ---- RENDER ----
     return (
         <div className="max-w-2xl mx-auto space-y-6 pt-10 px-4 min-h-screen bg-background text-foreground transition-colors duration-300">
 

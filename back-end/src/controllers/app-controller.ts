@@ -6,6 +6,7 @@ import { prisma } from "../connection/client";
 import AppError from "../utils/app-error";
 // import OpenAI from "openai";
 import { Groq } from "groq-sdk";
+import { any } from "joi";
 
 // Initialize OpenAI with .env key
 // const openai = new OpenAI({
@@ -52,15 +53,18 @@ export async function handleTidyUp(req: Request, res: Response, next: NextFuncti
 // Controller function for saving to database
 export async function handleSaveToDatabase(req: Request, res: Response, next: NextFunction) {
     try {
-        const { userId, rawContent, tidyContent, mood, category, isTidied } = req.body;
+        const { userId, email, rawContent, tidyContent, mood, category, isTidied } = req.body;
+
+        console.log("=== ATTEMPTING CREATE ===");
+        console.log("Data:", { userId, rawContent, tidyContent, mood, category, isTidied });
 
         // Check if user exists in DB, if not, create them (or link them)
         await prisma.user.upsert({
             where: { id: userId },
-            update: {}, // If they exist, do nothing
+            update: {}, // If they exist, do nothing | Keep email synced if it changes
             create: {
                 id: userId,
-                email: "user@example.com" // Ideally, pass email from frontend too
+                email: email // Ideally, pass email from frontend too
             },
         });
 
@@ -74,12 +78,18 @@ export async function handleSaveToDatabase(req: Request, res: Response, next: Ne
                 category: category || 'PERSONAL',
                 isTidied: !!isTidied
             }
+        }).catch(err => {
+            console.log("=== FULL ERROR ===");
+            console.log("Code:", err.code);
+            console.log("Meta:", err.meta);
+            console.log("Message:", err.message);
+            throw err;
         });
 
         // Prisma handles the push to Supabase
         res.status(201).json(newEntry);
     } catch (error) {
-        console.error(error);
+        console.error("PRISMA SAVE ERROR:", error);
         res.status(500).json({ error: "Database save failed" });
     }
 };

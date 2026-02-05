@@ -83,7 +83,7 @@ export default function LandingPage() {
             {/* Hero Section */}
             <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-20 pb-16 md:pt-32 md:pb-24">
                 <div className="text-center space-y-8 max-w-4xl mx-auto">
-                    <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-primary/10 text-primary text-sm font-medium border border-primary/20">
+                    <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-indigo-600 text-white text-sm font-medium border border-primary/20">
                         <Sparkles className="w-4 h-4" />
                         AI-Powered Personal Journaling
                     </div>
@@ -221,23 +221,23 @@ export default function LandingPage() {
                         </CardHeader>
                         <CardContent className="space-y-6">
                             <div className="space-y-2">
-                                <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">
+                                <p className="text-xs font-semibold text-primary uppercase tracking-wide">
                                     Your Raw Thought:
                                 </p>
-                                <p className="text-sm text-muted-foreground italic p-4 bg-muted/50 rounded-lg border">
+                                <p className="text-sm text-white italic p-4 bg-indigo-600 rounded-lg border">
                                     "today was ok i guess, work was stressful but managed to finish that project finally, feeling relieved but also tired"
                                 </p>
                             </div>
 
                             <div className="flex justify-center">
-                                <Sparkles className="w-6 h-6 text-primary animate-pulse" />
+                                <Sparkles className="w-6 h-6 text-indigo-500 animate-pulse" />
                             </div>
 
                             <div className="space-y-2">
                                 <p className="text-xs font-semibold text-primary uppercase tracking-wide">
                                     AI Enhanced:
                                 </p>
-                                <p className="text-sm p-4 bg-primary/5 rounded-lg border border-primary/20">
+                                <p className="text-sm text-white italic p-4 bg-indigo-600 rounded-lg border border-primary/20">
                                     "Today brought mixed emotions. Work was stressful, but I successfully completed the project I've been working on. I'm feeling relieved about the accomplishment, though physically exhausted from the effort."
                                 </p>
                                 <div className="flex gap-2 text-xs">

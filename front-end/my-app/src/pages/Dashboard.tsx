@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { EditEntryModal } from '@/components/EditEntryModal';
+import { SearchEntryModal } from '@/components/SearchEntryModal';
 import { supabase } from "@/lib/supabaseClient";
 import {
     Plus,
@@ -21,6 +22,7 @@ import {
     Meh,
     Trash2,
     Pencil,
+    Search,
 } from "lucide-react";
 import { Link } from "react-router-dom"; // Assuming you use react-router
 import { toast } from "sonner"
@@ -57,6 +59,8 @@ const Dashboard = () => {
     // Add state for edit Entry
     const [editingEntry, setEditingEntry] = useState<Entry | null>(null);
     const [isEditModalOpen, setIsEditModalOpen] = useState(false);
+    // Add state for search modal
+    const [isSearchModalOpen, setIsSearchModalOpen] = useState(false);
 
     // --- FETCH LOGIC ---
     const fetchDashboardData = async () => {
@@ -224,8 +228,18 @@ const Dashboard = () => {
             {/* Recent Entries */}
             <section className="space-y-4">
                 <div className="flex items-center justify-between">
-                    <h2 className="text-sm font-semibold uppercase tracking-wider text-muted-foreground">📝 All Entries</h2>
-                    <Button variant="ghost" size="sm" className="text-xs text-gray-400 hover:text-gray-500 cursor-pointer">View All</Button>
+                    <h2 className="text-sm font-semibold uppercase tracking-wider text-muted-foreground">
+                        📝 All Entries
+                    </h2>
+                    <Button
+                        variant="ghost"
+                        size="sm"
+                        className="text-xs gap-1"
+                        onClick={() => setIsSearchModalOpen(true)}
+                    >
+                        <Search className="w-3 h-3" />
+                        Search & Filter
+                    </Button>
                 </div>
 
                 <div className="space-y-3">
@@ -342,6 +356,13 @@ const Dashboard = () => {
                     )}
                 </CardContent>
             </Card>
+            {/* Search & Filter Modal */}
+            <SearchEntryModal
+                isOpen={isSearchModalOpen}
+                onClose={() => setIsSearchModalOpen(false)}
+                onEdit={handleEdit}
+                onDelete={handleDelete}
+            />
         </div>
     );
 };

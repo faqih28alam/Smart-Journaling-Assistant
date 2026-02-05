@@ -59,7 +59,8 @@ export default function Navbar() {
 
   const handleSignOut = async () => {
     await supabase.auth.signOut();
-    navigate("/login");
+    // Redirect to landing page after sign out
+    navigate("/");
   };
 
   const handleToggleDarkMode = () => {

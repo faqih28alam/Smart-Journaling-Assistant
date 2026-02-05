@@ -34,9 +34,24 @@ interface Entry {
     createdAt: string;
 }
 
+interface WeeklyInsight {
+    id: string;
+    summary: string;
+    topThemes: string[];
+    moodData: Record<string, number>;
+    entriesAnalyzed: number;
+    startDate: string;
+    endDate: string;
+}
+
+
 const Dashboard = () => {
     const [entries, setEntries] = useState<Entry[]>([]);
     const [stats, setStats] = useState({ count: 0, streak: 0 });
+    // for weekly insight
+    const [isGenerating, setIsGenerating] = useState(false);
+    const [weeklyInsight, setWeeklyInsight] = useState<WeeklyInsight | null>(null);
+    const [currentUserId, setCurrentUserId] = useState<string | null>(null);
 
     // --- FETCH LOGIC ---
     const fetchDashboardData = async () => {
@@ -109,6 +124,50 @@ const Dashboard = () => {
         }
     };
 
+    // ---- Generate Weekly Insight ----
+    const generateWeeklyInsight = async () => {
+        if (!currentUserId) {
+            toast.error("User not logged in");
+            return;
+        }
+
+        setIsGenerating(true);
+
+        try {
+            const response = await fetch('http://localhost:3000/api/generate-weekly-insight', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ userId: currentUserId })
+            });
+
+            const data = await response.json();
+
+            if (response.ok) {
+                setWeeklyInsight(data);
+                toast.success("Weekly insight generated!");
+            } else {
+                toast.error(data.error || 'Failed to generate insight');
+            }
+        } catch (error) {
+            console.error('Error:', error);
+            toast.error('Failed to generate insight');
+        } finally {
+            setIsGenerating(false);
+        }
+    };
+    // Fetch current user
+    useEffect(() => {
+        const getCurrentUser = async () => {
+            const { data: { user } } = await supabase.auth.getUser();
+            if (user) {
+                setCurrentUserId(user.id);
+            }
+        };
+        getCurrentUser();
+    }, []);
+
+
+    // ---- RENDER ----
     return (
         <div className="max-w-2xl mx-auto p-6 space-y-8 pb-20">
             {/* Header */}
@@ -205,12 +264,52 @@ const Dashboard = () => {
                     </CardTitle>
                 </CardHeader>
                 <CardContent className="space-y-4">
-                    <p className="text-lg font-medium leading-relaxed">
-                        "You focused on work-life balance and made progress on your personal goals despite a busy week."
-                    </p>
-                    <Button variant="secondary" className="w-full bg-white/10 hover:bg-white/20 border-none text-white backdrop-blur-md">
-                        See Details <ArrowRight className="w-4 h-4 ml-2" />
-                    </Button>
+                    {weeklyInsight ? (
+                        <div>
+                            <p className="text-lg mb-4 leading-relaxed">"{weeklyInsight.summary}"</p>
+
+                            <div className="mb-4">
+                                <h4 className="font-semibold mb-2 text-indigo-100">Top Themes:</h4>
+                                <div className="flex flex-wrap gap-2">
+                                    {weeklyInsight.topThemes.map((theme: string, idx: number) => (
+                                        <span key={idx} className="bg-white/20 px-3 py-1 rounded-full text-sm">
+                                            {theme}
+                                        </span>
+                                    ))}
+                                </div>
+                            </div>
+
+                            <p className="text-xs text-indigo-200 mb-3">
+                                Based on {weeklyInsight.entriesAnalyzed} entries
+                            </p>
+
+                            <Button
+                                variant="secondary"
+                                className="bg-white/20 hover:bg-white/30 text-white border-none"
+                            >
+                                See Details <ArrowRight className="w-4 h-4 ml-2" />
+                            </Button>
+                        </div>
+                    ) : (
+                        <div className="text-center">
+                            <p className="mb-4 text-indigo-100">
+                                Generate AI-powered insights from your journal entries
+                            </p>
+                            <Button
+                                onClick={generateWeeklyInsight}
+                                disabled={isGenerating || stats.count === 0}
+                                className="bg-white text-indigo-600 hover:bg-white/90"
+                            >
+                                {isGenerating ? (
+                                    <>Generating...</>
+                                ) : stats.count === 0 ? (
+                                    <>Write entries first</>
+                                ) : (
+                                    <>✨ Generate Weekly Insight</>
+                                )}
+                            </Button>
+                        </div>
+                    )}
                 </CardContent>
             </Card>
         </div>

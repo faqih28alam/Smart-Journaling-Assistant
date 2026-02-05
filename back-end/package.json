@@ -2,9 +2,11 @@
   "name": "back-end",
   "version": "1.0.0",
   "description": "",
-  "main": "index.js",
+  "main": "App.ts",
   "scripts": {
-    "dev": "ts-node-dev --respawn src/app.ts",
+    "postinstall": "prisma generate",
+    "build": "prisma generate && tsc",
+    "dev": "ts-node-dev --respawn src/App.ts",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "keywords": [],

@@ -31,6 +31,8 @@ app.use((err: any, req: any, res: any, next: any) => {
 
 // Start server and listen on specified port
 const PORT = process.env.PORT || 3000;
-app.listen(PORT, () => {
-    console.log(`Backend Server running on http://localhost:${PORT}`);
-});
+// app.listen(PORT, () => {
+//     console.log(`Backend Server running on http://localhost:${PORT}`);
+// });
+
+module.exports = app;

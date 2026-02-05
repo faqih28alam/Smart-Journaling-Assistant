@@ -6,6 +6,7 @@ import { useState, useEffect } from 'react';
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import { EditEntryModal } from '@/components/EditEntryModal';
 import { supabase } from "@/lib/supabaseClient";
 import {
     Plus,
@@ -18,7 +19,8 @@ import {
     Smile,
     Frown,
     Meh,
-    Trash2
+    Trash2,
+    Pencil,
 } from "lucide-react";
 import { Link } from "react-router-dom"; // Assuming you use react-router
 import { toast } from "sonner"
@@ -52,6 +54,9 @@ const Dashboard = () => {
     const [isGenerating, setIsGenerating] = useState(false);
     const [weeklyInsight, setWeeklyInsight] = useState<WeeklyInsight | null>(null);
     const [currentUserId, setCurrentUserId] = useState<string | null>(null);
+    // Add state for edit Entry
+    const [editingEntry, setEditingEntry] = useState<Entry | null>(null);
+    const [isEditModalOpen, setIsEditModalOpen] = useState(false);
 
     // --- FETCH LOGIC ---
     const fetchDashboardData = async () => {
@@ -122,6 +127,12 @@ const Dashboard = () => {
         } catch (error: any) {
             toast.error(error.message || "Failed to delete");
         }
+    };
+
+    // ---- Handle Edit ----
+    const handleEdit = (entry: Entry) => {
+        setEditingEntry(entry);
+        setIsEditModalOpen(true);
     };
 
     // ---- Generate Weekly Insight ----
@@ -248,8 +259,27 @@ const Dashboard = () => {
                             >
                                 <Trash2 className="w-4 h-4" />
                             </Button>
+                            {/* Edit Button */}
+                            <Button
+                                variant="ghost"
+                                size="icon"
+                                className="absolute bottom-2 right-12 h-8 w-8 text-muted-foreground hover:text-primary hover:bg-primary/10"
+                                onClick={() => handleEdit(entry)}
+                            >
+                                <Pencil className="w-4 h-4" />
+                            </Button>
                         </Card>
                     ))}
+                    {/* Edit Entry Modal */}
+                    <EditEntryModal
+                        entry={editingEntry}
+                        isOpen={isEditModalOpen}
+                        onClose={() => {
+                            setIsEditModalOpen(false);
+                            setEditingEntry(null);
+                        }}
+                        onSave={fetchDashboardData}
+                    />
                 </div>
             </section>
 

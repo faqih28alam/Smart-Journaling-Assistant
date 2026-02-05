@@ -38,7 +38,7 @@ export default function Login() {
     <div className="flex items-center justify-center min-h-screen bg-background px-4 transition-colors duration-300">
       <Card className="w-full max-w-md border-border shadow-lg">
         <CardHeader>
-          <CardTitle className="text-2xl text-center text-foreground">Journal App</CardTitle>
+          <CardTitle className="text-2xl font-bold tracking-tight text-center text-indigo-600">Welcome Back!</CardTitle>
           <CardDescription className="text-center">
             Enter your credentials to access your account
           </CardDescription>

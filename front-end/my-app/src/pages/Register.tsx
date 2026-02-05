@@ -43,7 +43,7 @@ export default function Register() {
 
                 {/* Header */}
                 <CardHeader>
-                    <CardTitle className="text-2xl text-center">Journal App</CardTitle>
+                    <CardTitle className="text-2xl font-bold tracking-tight text-center text-indigo-600">Welcome!</CardTitle>
                     <CardDescription className="text-center">
                         Create an account
                     </CardDescription>

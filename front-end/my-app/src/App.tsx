@@ -23,8 +23,6 @@ function App() {
       <ThemeProviderWrapper>
         <Routes>
 
-          {/* AUTH ROUTES (No Header) */}
-
           {/* Public Routes */}
           <Route path="/" element={<LandingPage />} />
           <Route element={<MainLayout />}>

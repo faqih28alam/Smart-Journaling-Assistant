@@ -73,7 +73,7 @@ export default function Navbar() {
         <div className="flex justify-between h-16 items-center">
           <div className="flex items-center gap-2">
             <BookOpen className="w-6 h-6 text-primary" />
-            <span className="text-xl font-bold">Journal App</span>
+            <span className="text-xl font-bold tracking-tight">Journal<span className="text-indigo-600">AI</span></span>
           </div>
 
           <div className="flex items-center gap-4">

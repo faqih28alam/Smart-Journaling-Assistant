@@ -1,5 +1,5 @@
-// Home.tsx
-// src/pages/Home.tsx
+// Entry.tsx
+// src/pages/Entry.tsx
 
 import { useState, useEffect } from 'react';
 import { Button } from "@/components/ui/button";
@@ -8,7 +8,7 @@ import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { toast } from "sonner"
 import { supabase } from "@/lib/supabaseClient";
 import { Calendar, Mic, MicOff } from "lucide-react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, Link } from "react-router-dom";
 
 // Define the shape of an entry based on schema
 interface Entry {
@@ -21,7 +21,7 @@ interface Entry {
     createdAt: string;
 }
 
-const Home = () => {
+const Entry = () => {
     const navigate = useNavigate();
     const [content, setContent] = useState<string>('');
     const [isSaving, setIsSaving] = useState(false);
@@ -164,7 +164,13 @@ const Home = () => {
 
             {/* Header */}
             <header className="space-y-2">
-                <h2 className="text-3xl font-bold tracking-tight text-foreground">Daily Entry</h2>
+                <div className="flex items-center justify-between">
+                    <h2 className="text-3xl font-bold tracking-tight text-foreground">Daily Entry</h2>
+                    {/* Button to Dashboard */}
+                    <Button className="rounded-full shadow-lg hover:shadow-indigo-500/20 transition-all cursor-pointer">
+                        <Link to="/dashboard">View Dashboard</Link>
+                    </Button>
+                </div>
                 <p className="text-muted-foreground">
                     Don't worry about grammar—just write. AI will organize it later.
                 </p>
@@ -245,7 +251,7 @@ const Home = () => {
                 <Button
                     onClick={handleTidyUp}
                     disabled={!content.trim() || isSaving}
-                    className="w-full py-7 rounded-xl font-bold text-lg shadow-lg shadow-indigo-500/20 dark:shadow-indigo-900/40"
+                    className="w-full py-7 rounded-xl font-bold text-lg shadow-lg shadow-indigo-500/20 dark:shadow-indigo-900/40 cursor-pointer"
                     size="lg"
                 >
                     {isSaving ? 'Locking it in...' : '✨ Tidy Up with AI'}
@@ -312,4 +318,4 @@ const Home = () => {
     );
 };
 
-export default Home;
+export default Entry;

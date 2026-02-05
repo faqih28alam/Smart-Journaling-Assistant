@@ -26,10 +26,11 @@ import {
 } from "lucide-react";
 import { Link } from "react-router-dom"; // Assuming you use react-router
 import { toast } from "sonner"
-
+import { getMoodColor, getCategoryColor } from '@/lib/moodCategoryColors';
 
 interface Entry {
     id: string;
+    title?: string;
     rawContent: string;
     tidyContent?: string;
     mood?: string;
@@ -98,10 +99,17 @@ const Dashboard = () => {
     }, []);
 
     const getMoodIcon = (mood?: string) => {
+        const iconSize = 16;
+
         switch (mood?.toUpperCase()) {
-            case 'HAPPY': return <Smile className="w-4 h-4 text-green-500" />;
-            case 'FRUSTRATED': return <Frown className="w-4 h-4 text-red-500" />;
-            default: return <Meh className="w-4 h-4 text-slate-400" />;
+            case 'HAPPY':
+                return <Smile size={iconSize} className="text-yellow-500 animate-pulse" />;
+            case 'FRUSTRATED':
+                return <Frown size={iconSize} className="text-red-500" />;
+            case 'SAD':
+                return <Frown size={iconSize} className="text-blue-500" />;
+            default:
+                return <Meh size={iconSize} className="text-slate-400" />;
         }
     };
 
@@ -185,6 +193,7 @@ const Dashboard = () => {
     // ---- RENDER ----
     return (
         <div className="max-w-2xl mx-auto p-6 space-y-8 pb-20">
+
             {/* Header */}
             <header className="flex items-center justify-between">
                 <div className="flex items-center gap-2">
@@ -193,7 +202,7 @@ const Dashboard = () => {
                     </div>
                     <h1 className="text-xl font-bold tracking-tight">Smart Journal</h1>
                 </div>
-                <Link to="/home">
+                <Link to="/entry">
                     <Button className="rounded-full shadow-lg hover:shadow-indigo-500/20 transition-all cursor-pointer">
                         <Plus className="w-4 h-4 mr-2" /> New Entry
                     </Button>
@@ -207,19 +216,27 @@ const Dashboard = () => {
                     <h2 className="text-sm font-semibold uppercase tracking-wider">Stats</h2>
                 </div>
                 <div className="grid grid-cols-2 gap-4">
-                    <Card className="bg-slate-50/50 border-none shadow-none">
+                    <Card className="bg-slate-50/50 dark:bg-zinc-900/50 border-none shadow-none transition-colors">
                         <CardContent className="p-4">
-                            <p className="text-2xl font-bold">{stats.count}</p>
-                            <p className="text-xs text-muted-foreground">Total Entries</p>
+                            <p className="text-2xl font-bold text-zinc-900 dark:text-zinc-50">
+                                {stats.count}
+                            </p>
+                            <p className="text-xs text-zinc-500 dark:text-zinc-400 font-medium">
+                                Total Entries
+                            </p>
                         </CardContent>
                     </Card>
-                    <Card className="bg-indigo-50/50 border-none shadow-none">
+                    <Card className="bg-indigo-50/50 dark:bg-indigo-500/10 border-none shadow-none transition-colors">
                         <CardContent className="p-4">
                             <div className="flex items-center gap-2">
-                                <p className="text-2xl font-bold text-indigo-700">{stats.streak}</p>
-                                <TrendingUp className="w-4 h-4 text-indigo-600" />
+                                <p className="text-2xl font-bold text-indigo-700 dark:text-indigo-300">
+                                    {stats.streak}
+                                </p>
+                                <TrendingUp className="w-4 h-4 text-indigo-600 dark:text-indigo-400" />
                             </div>
-                            <p className="text-xs text-indigo-600/70 font-medium">Day Streak</p>
+                            <p className="text-xs text-indigo-600/70 dark:text-indigo-400/80 font-medium">
+                                Day Streak
+                            </p>
                         </CardContent>
                     </Card>
                 </div>
@@ -227,6 +244,7 @@ const Dashboard = () => {
 
             {/* Recent Entries */}
             <section className="space-y-4">
+                {/* Header */}
                 <div className="flex items-center justify-between">
                     <h2 className="text-sm font-semibold uppercase tracking-wider text-muted-foreground">
                         📝 All Entries
@@ -234,42 +252,51 @@ const Dashboard = () => {
                     <Button
                         variant="ghost"
                         size="sm"
-                        className="text-xs gap-1"
+                        className="text-xs gap-1 cursor-pointer"
                         onClick={() => setIsSearchModalOpen(true)}
                     >
                         <Search className="w-3 h-3" />
                         Search & Filter
                     </Button>
                 </div>
-
+                {/* Entries */}
                 <div className="space-y-3">
                     {entries.map((entry) => (
-                        <Card key={entry.id} className="relative group hover:border-indigo-200 transition-all cursor-pointer">
+                        <Card key={entry.id} className="relative group hover:border-indigo-200 transition-all">
                             <CardContent className="p-4">
                                 {/* Date & Category */}
                                 <div className="flex justify-between items-start mb-2">
-                                    <span className="text-xs font-medium text-slate-400">
-                                        <Clock className="w-3 h-3" />
+                                    <span className="flex items-center gap-2 text-xs font-medium text-slate-400">
+                                        <Clock className="w-4 h-4" />
                                         {new Date(entry.createdAt).toLocaleDateString()} at {new Date(entry.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
                                     </span>
-                                    <Badge variant="secondary" className="text-[10px] uppercase font-bold px-2 py-0">
+                                    <Badge className={`text-[10px] uppercase font-bold px-2 py-0.5 border ${getCategoryColor(entry.category)}`}>
                                         {entry.category || 'General'}
                                     </Badge>
                                 </div>
+                                {/* Title */}
+                                <h3 className="text-md font-semibold mb-1 truncate">{entry.title}</h3>
                                 {/* Content */}
-                                <p className="text-sm font-medium line-clamp-3 mb-2">
+                                <p className="text-sm font-medium italic line-clamp-3 mb-2">
                                     {entry.isTidied ? entry.tidyContent : entry.rawContent}
                                 </p>
-                                <div className="flex items-center gap-1 text-xs text-muted-foreground">
-                                    {getMoodIcon(entry.mood)}
-                                    <span className="capitalize">{entry.mood?.toLowerCase() || 'Neutral'}</span>
+                                {/* Mood Badge */}
+                                <div className="flex items-center gap-2">
+                                    <Badge className={`flex items-center gap-2 px-2 py-0.5 ${getMoodColor(entry.mood)}`}>
+                                        <div className="flex-shrink-0">
+                                            {getMoodIcon(entry.mood)}
+                                        </div>
+                                        <span className="capitalize text-sm font-medium">
+                                            {entry.mood?.toLowerCase() || 'Neutral'}
+                                        </span>
+                                    </Badge>
                                 </div>
                             </CardContent>
                             {/* Delete Button */}
                             <Button
                                 variant="ghost"
                                 size="icon"
-                                className="absolute bottom-2 right-2 h-8 w-8 text-muted-foreground hover:text-destructive hover:bg-destructive/10 transition-colors" onClick={() => handleDelete(entry.id)}
+                                className="absolute bottom-2 right-2 h-8 w-8 text-muted-foreground hover:text-destructive hover:bg-destructive/10 transition-colors cursor-pointer" onClick={() => handleDelete(entry.id)}
                             >
                                 <Trash2 className="w-4 h-4" />
                             </Button>
@@ -277,7 +304,7 @@ const Dashboard = () => {
                             <Button
                                 variant="ghost"
                                 size="icon"
-                                className="absolute bottom-2 right-12 h-8 w-8 text-muted-foreground hover:text-primary hover:bg-primary/10"
+                                className="absolute bottom-2 right-12 h-8 w-8 text-muted-foreground hover:text-primary hover:bg-primary/10 cursor-pointer"
                                 onClick={() => handleEdit(entry)}
                             >
                                 <Pencil className="w-4 h-4" />
@@ -342,7 +369,7 @@ const Dashboard = () => {
                             <Button
                                 onClick={generateWeeklyInsight}
                                 disabled={isGenerating || stats.count === 0}
-                                className="bg-white text-indigo-600 hover:bg-white/90"
+                                className="bg-white text-indigo-600 hover:bg-white/90 cursor-pointer"
                             >
                                 {isGenerating ? (
                                     <>Generating...</>

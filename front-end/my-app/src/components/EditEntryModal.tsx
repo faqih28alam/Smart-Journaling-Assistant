@@ -187,7 +187,7 @@ export const EditEntryModal = ({ entry, isOpen, onClose, onSave }: EditEntryModa
                             <Textarea
                                 value={tidyContent}
                                 onChange={(e) => setTidyContent(e.target.value)}
-                                className="min-h-[100px] bg-white"
+                                className="min-h-[100px]"
                             />
                         </div>
                     )}

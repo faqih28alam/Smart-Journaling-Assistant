@@ -3,7 +3,7 @@
 // Pages 
 import Login from "./pages/Login"
 import Register from "./pages/Register"
-import Home from "./pages/Home"
+import Entry from "./pages/Entry"
 import LandingPage from "./pages/LandingPage"
 import Dashboard from "./pages/Dashboard"
 
@@ -28,13 +28,13 @@ function App() {
           <Route element={<MainLayout />}>
             <Route path="/login" element={<Login />} />
             <Route path="/register" element={<Register />} />
-            {/* <Route path="/test" element={<Home />} />           */}
+            {/* <Route path="/test" element={<Entry />} />           */}
           </Route>
 
           {/* Private Routes */}
           <Route element={<ProtectedRoute />}>
             <Route element={<MainLayout />}>
-              <Route path="/home" element={<Home />} />
+              <Route path="/entry" element={<Entry />} />
               <Route path="/dashboard" element={<Dashboard />} />
             </Route>
           </Route>

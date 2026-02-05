@@ -29,7 +29,7 @@ export default function Login() {
       alert(error.message);
     } else {
       // Redirect to home after successful login
-      navigate("/home");
+      navigate("/dashboard");
     }
     setLoading(false);
   };

@@ -1,17 +1,13 @@
 // App-controller.ts
 // src/controllers/app-controller.ts
 
+// Imports
 import { Request, Response, NextFunction } from "express";
 import { prisma } from "../connection/client";
 import AppError from "../utils/app-error";
 // import OpenAI from "openai";
 import { Groq } from "groq-sdk";
-import { any } from "joi";
 
-// Initialize OpenAI with .env key
-// const openai = new OpenAI({
-//     apiKey: process.env.OPENAI_API_KEY,
-// });
 // Initialize Groq
 const groq = new Groq({
     apiKey: process.env.GROQ_API_KEY,

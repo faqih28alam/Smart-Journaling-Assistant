@@ -7,10 +7,9 @@ import { Textarea } from "@/components/ui/textarea";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { toast } from "sonner"
 import { supabase } from "@/lib/supabaseClient";
-import { Calendar, Mic, MicOff } from "lucide-react";
+import { Calendar, Mic, MicOff, Sparkles, Save } from "lucide-react";
 import { useNavigate, Link } from "react-router-dom";
 
-// Define the shape of an entry based on schema
 interface Entry {
     id: string;
     rawContent: string;
@@ -29,12 +28,10 @@ const Entry = () => {
     const [isListening, setIsListening] = useState(false);
     const [aiSuggestion, setAiSuggestion] = useState<{
         tidyContent: string;
-        mood: any;
-        category: any;
+        mood: string;
+        category: string;
     } | null>(null);
 
-    // --- FETCH LOGIC ---
-    // Fetch recent entries
     const fetchEntries = async () => {
         const { data: { user } } = await supabase.auth.getUser();
         if (!user) return;
@@ -44,54 +41,49 @@ const Entry = () => {
             .select('id, rawContent, tidyContent, mood, category, createdAt, isTidied')
             .eq('userId', user.id)
             .order('createdAt', { ascending: false })
-            .limit(2); // Show only last 2
+            .limit(2);
 
         if (error) console.error("Error fetching:", error.message);
         else setEntries(data || []);
     };
+
     useEffect(() => {
         fetchEntries();
     }, []);
 
-    // --- Handle Tidy Up ---
     const handleTidyUp = async () => {
         if (!content.trim()) return;
         setIsSaving(true);
         const toastId = toast.loading("AI is analyzing and tidying...");
 
         try {
-            // We call Express backend (Step 2)
-            // This endpoint calls AI but DOES NOT save to DB yet
             const response = await fetch(`${import.meta.env.VITE_BACKEND_URL}/api/tidy`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ text: content })
             });
 
-            const data = await response.json();
+            if (!response.ok) throw new Error("AI service unavailable");
 
-            // Step 3: Show the AI version in the UI
+            const data = await response.json();
             setAiSuggestion(data);
             toast.success("AI version ready!", { id: toastId });
-
         } catch (error: any) {
-            console.error("FULL ERROR:", error.response?.data || error.message);
             toast.error(error.message || "AI processing failed", { id: toastId });
         } finally {
             setIsSaving(false);
         }
     };
 
-    // ---- Handle Save ----
     const handleFinalSave = async (useAiVersion: boolean) => {
+        if (!content.trim()) return;
         setIsSaving(true);
+        const toastId = toast.loading("Saving your thoughts...");
+
         try {
-            // Get the current user ID first
             const { data: { user } } = await supabase.auth.getUser();
-            if (!user) {
-                toast.error("You must be logged in to save.");
-                return;
-            }
+            if (!user) throw new Error("Authentication required.");
+
             const payload = {
                 userId: user.id,
                 email: user.email,
@@ -102,7 +94,6 @@ const Entry = () => {
                 isTidied: useAiVersion
             };
 
-            // Send to Express to save via Prisma
             const response = await fetch(`${import.meta.env.VITE_BACKEND_URL}/api/save-entry`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
@@ -114,60 +105,52 @@ const Entry = () => {
                 throw new Error(errorData.error || "Database save failed");
             }
 
-            toast.success("Saved to your journal!");
+            toast.success("Saved to your journal!", { id: toastId });
             setAiSuggestion(null);
             setContent('');
-            fetchEntries();         // Refresh the list
-        } catch (error) {
-            toast.error("Failed to save");
+            fetchEntries();
+        } catch (error: any) {
+            toast.error(error.message || "Failed to save", { id: toastId });
         } finally {
             setIsSaving(false);
         }
     };
 
-    // ---- Handle Voice Input ----
-    const handleVoiceInput = async () => {
-        // Check if browser supports Speech Recognition
+    const handleVoiceInput = () => {
         const SpeechRecognition = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
 
         if (!SpeechRecognition) {
-            alert("Your browser does not support voice input.");
             toast.error("Your browser does not support voice input.");
             return;
         }
 
         const recognition = new SpeechRecognition();
-        recognition.continuous = false; // Stop when the user stops talking
-        recognition.interimResults = false; // Only final results
-        recognition.lang = 'id-ID';      // change this to 'id-ID' or 'en-US' as if needed
+        recognition.continuous = false;
+        recognition.interimResults = false;
+        recognition.lang = 'id-ID';
 
         recognition.onstart = () => setIsListening(true);
         recognition.onend = () => setIsListening(false);
 
         recognition.onresult = (event: any) => {
             const transcript = event.results[0][0].transcript;
-            // Append transcript to existing content
             setContent(prev => prev ? `${prev} ${transcript}` : transcript);
         };
 
         recognition.onerror = (event: any) => {
-            console.error("Speech Recognition Error:", event.error);
             setIsListening(false);
+            toast.error("Speech error: " + event.error);
         };
 
         recognition.start();
     };
 
-    // ---- RENDER ----
     return (
         <div className="max-w-2xl mx-auto space-y-6 pt-10 px-4 min-h-screen bg-background text-foreground transition-colors duration-300">
-
-            {/* Header */}
             <header className="space-y-2">
                 <div className="flex items-center justify-between">
-                    <h2 className="text-3xl font-bold tracking-tight text-foreground">Daily Entry</h2>
-                    {/* Button to Dashboard */}
-                    <Button className="rounded-full shadow-lg hover:shadow-indigo-500/20 transition-all cursor-pointer">
+                    <h2 className="text-3xl font-bold tracking-tight">Daily Entry</h2>
+                    <Button variant="ghost" asChild>
                         <Link to="/dashboard">View Dashboard</Link>
                     </Button>
                 </div>
@@ -176,68 +159,65 @@ const Entry = () => {
                 </p>
             </header>
 
-            {/* Main Input Area */}
             <div className="relative group">
-                {/* Text Area */}
+                {/* text area */}
                 <Textarea
-                    className="min-h-[300px] p-5 text-lg rounded-2xl shadow-sm border-2 transition-all focus-visible:ring-indigo-500"
+                    className="min-h-[300px] p-5 text-lg rounded-2xl shadow-sm border-2 focus-visible:ring-indigo-500 transition-all"
                     placeholder="What's on your mind today?"
                     value={content}
                     onChange={(e) => setContent(e.target.value)}
                     disabled={isSaving}
                 />
-                {/* Voice Input Button */}
-                <div className="absolute bottom-4 left-4 flex gap-2">
+                {/* voice input */}
+                <div className="absolute bottom-4 left-4 flex items-center gap-3">
                     <Button
                         type="button"
                         variant={isListening ? "destructive" : "secondary"}
-                        size="sm"
+                        size="icon"
                         onClick={handleVoiceInput}
-                        className="rounded-full h-10 w-10 flex items-center justify-center animate-pulse-slow cursor-pointer"
+                        className={`rounded-full shadow-md ${isListening ? 'animate-pulse' : ''}`}
                     >
                         {isListening ? <MicOff className="w-5 h-5" /> : <Mic className="w-5 h-5" />}
                     </Button>
                     {isListening && (
-                        <span className="text-xs text-red-500 font-medium animate-pulse flex items-center">
+                        <span className="text-xs font-semibold text-red-500 animate-pulse">
                             Listening...
                         </span>
                     )}
                 </div>
-                <div className="absolute bottom-4 right-4 text-xs text-muted-foreground font-mono bg-background/80 backdrop-blur-sm px-2 py-1 rounded border">
+                {/* character count */}
+                <div className="absolute bottom-4 right-4 text-[10px] text-muted-foreground font-mono bg-background/90 px-2 py-1 rounded border">
                     {content.length} characters
                 </div>
             </div>
-
-            {/* AI Suggestion Card */}
+            {/* AI Suggestion Section */}
             {aiSuggestion && (
                 <div className="animate-in fade-in slide-in-from-top-4 duration-300">
-                    <Card className="border-indigo-500 bg-indigo-50/50 shadow-md">
-                        <CardContent className="pt-4 space-y-3">
+                    <Card className="border-indigo-500 bg-indigo-50/30 dark:bg-indigo-950/20 shadow-md">
+                        <CardContent className="pt-4 space-y-4">
                             <div className="flex items-center justify-between">
-                                <h4 className="font-bold text-indigo-700 flex items-center gap-2">
-                                    ✨ AI Suggestion
+                                <h4 className="font-bold text-indigo-600 flex items-center gap-2">
+                                    <Sparkles className="w-4 h-4" /> AI Suggestion
                                 </h4>
-                                <span className="text-[10px] font-bold bg-indigo-100 text-indigo-700 px-2 py-0.5 rounded uppercase">
-                                    {aiSuggestion.mood} | {aiSuggestion.category}
-                                </span>
+                                <div className="flex gap-2">
+                                    <span className="text-[10px] font-bold bg-indigo-100 dark:bg-indigo-900 text-indigo-700 dark:text-indigo-300 px-2 py-0.5 rounded uppercase">
+                                        {aiSuggestion.mood}
+                                    </span>
+                                    <span className="text-[10px] font-bold bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 px-2 py-0.5 rounded uppercase">
+                                        {aiSuggestion.category}
+                                    </span>
+                                </div>
                             </div>
 
-                            <p className="text-sm text-gray-800 leading-relaxed italic">
+                            <p className="text-sm leading-relaxed italic border-l-4 border-indigo-200 pl-4 py-1">
                                 "{aiSuggestion.tidyContent}"
                             </p>
 
-                            <div className="flex gap-3 mt-4">
-                                <Button
-                                    className="flex-1 bg-indigo-600 hover:bg-indigo-700"
-                                    onClick={() => handleFinalSave(true)}
-                                >
+                            <div className="flex gap-3">
+                                <Button className="flex-1 bg-indigo-600" onClick={() => handleFinalSave(true)}>
                                     Accept AI Version
                                 </Button>
-                                <Button
-                                    variant="outline"
-                                    className="flex-1"
-                                    onClick={() => handleFinalSave(false)}
-                                >
+                                <Button variant="outline" className="flex-1" onClick={() => handleFinalSave(false)}>
                                     Keep My Raw Version
                                 </Button>
                             </div>
@@ -245,17 +225,29 @@ const Entry = () => {
                     </Card>
                 </div>
             )}
-
-            {/* Tidy Up with AI Button */}
+            {/* Button Group Section */}
             {!aiSuggestion && (
-                <Button
-                    onClick={handleTidyUp}
-                    disabled={!content.trim() || isSaving}
-                    className="w-full py-7 rounded-xl font-bold text-lg shadow-lg shadow-indigo-500/20 dark:shadow-indigo-900/40 cursor-pointer"
-                    size="lg"
-                >
-                    {isSaving ? 'Locking it in...' : '✨ Tidy Up with AI'}
-                </Button>
+                // Buttons to trigger AI tidy or save raw
+                <div className="flex flex-col sm:flex-row gap-3">
+                    <Button
+                        onClick={handleTidyUp}
+                        disabled={!content.trim() || isSaving}
+                        className="flex-1 py-6 rounded-xl font-bold text-white bg-indigo-600 hover:bg-indigo-700 dark:bg-indigo-500 dark:hover:bg-indigo-600"
+                        variant="default"
+                    >
+                        <Sparkles className="mr-2 w-5 h-5" />
+                        {isSaving ? 'Thinking...' : 'Tidy Up with AI'}
+                    </Button>
+                    <Button
+                        onClick={() => handleFinalSave(false)}
+                        disabled={!content.trim() || isSaving}
+                        className="flex-1 py-6 rounded-xl font-bold text-white bg-black/100 hover:bg-black/70 dark:bg-white/10 dark:hover:bg-white/20"
+                        variant="secondary"
+                    >
+                        <Save className="mr-2 w-5 h-5" />
+                        Save Raw
+                    </Button>
+                </div>
             )}
 
             {/* Recent Activity Section */}

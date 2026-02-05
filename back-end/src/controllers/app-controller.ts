@@ -94,6 +94,39 @@ export async function handleSaveToDatabase(req: Request, res: Response, next: Ne
     }
 };
 
+// Controller function for updating an entry
+export async function handleUpdateEntry(req: Request, res: Response, next: NextFunction) {
+    try {
+        const entryId = req.params.entryId as string;
+        const { rawContent, tidyContent, mood, category, isTidied, title } = req.body;
+
+        console.log("=== UPDATING ENTRY ===");
+        console.log("Entry ID:", entryId);
+        console.log("Update data:", { rawContent, tidyContent, mood, category, isTidied, title });
+
+        // Update the entry
+        const updatedEntry = await prisma.entry.update({
+            where: { id: entryId },
+            data: {
+                ...(rawContent && { rawContent }),
+                ...(tidyContent !== undefined && { tidyContent }),
+                ...(mood && { mood }),
+                ...(category && { category }),
+                ...(isTidied !== undefined && { isTidied }),
+                ...(title !== undefined && { title }),
+                updatedAt: new Date()
+            }
+        });
+
+        console.log("=== ENTRY UPDATED ===");
+        res.status(200).json(updatedEntry);
+
+    } catch (error: any) {
+        console.error("UPDATE ENTRY ERROR:", error);
+        res.status(500).json({ error: "Failed to update entry" });
+    }
+}
+
 // Controller function for generating weekly insights
 export async function handleGenerateWeeklyInsight(req: Request, res: Response, next: NextFunction) {
     try {

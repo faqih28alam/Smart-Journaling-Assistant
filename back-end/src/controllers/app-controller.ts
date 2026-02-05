@@ -13,6 +13,53 @@ const groq = new Groq({
     apiKey: process.env.GROQ_API_KEY,
 });
 
+// Controller function for update profile
+export const updateProfile = async (req: Request, res: Response) => {
+    const { userId, name, email } = req.body;
+
+    // Safety Check
+    if (!userId) {
+        return res.status(400).json({ message: "User ID is required for update." });
+    }
+
+    try {
+        // Validation: Ensure user isn't trying to change email to one that exists
+        if (email) {
+            const existingUser = await prisma.user.findUnique({ where: { email } });
+            if (existingUser && existingUser.id !== userId) {
+                return res.status(400).json({ message: "Email already in use." });
+            }
+        }
+
+        // Update the record
+        const updatedUser = await prisma.user.update({
+            where: { id: userId },
+            data: {
+                name: name,
+                ...(email && { email }), // Only update email if provided
+            },
+            // Select specific fields to return (don't send back sensitive data)
+            select: {
+                id: true,
+                email: true,
+                name: true,
+                streakCount: true,
+                totalEntries: true,
+                updatedAt: true,
+            }
+        });
+
+        res.status(200).json({
+            message: "Profile updated successfully",
+            user: updatedUser
+        });
+
+    } catch (error) {
+        console.error("PRISMA UPDATE ERROR:", error);
+        res.status(500).json({ message: "Internal server error" });
+    }
+};
+
 // Controller function for tidy up request
 export async function handleTidyUp(req: Request, res: Response, next: NextFunction) {
     try {

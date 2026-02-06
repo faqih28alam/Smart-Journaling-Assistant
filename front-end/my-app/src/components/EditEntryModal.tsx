@@ -71,7 +71,7 @@ export const EditEntryModal = ({ entry, isOpen, onClose, onSave }: EditEntryModa
 
         setIsTidying(true);
         try {
-            const response = await fetch('http://localhost:3000/api/tidy', {
+            const response = await fetch(`${import.meta.env.VITE_API_URL}/tidy`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ text: content })
@@ -101,7 +101,7 @@ export const EditEntryModal = ({ entry, isOpen, onClose, onSave }: EditEntryModa
 
         setIsSaving(true);
         try {
-            const response = await fetch(`http://localhost:3000/api/update-entry/${entry.id}`, {
+            const response = await fetch(`${import.meta.env.VITE_API_URL}/update-entry/${entry.id}`, {
                 method: 'PUT',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({

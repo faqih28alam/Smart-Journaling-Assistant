@@ -69,7 +69,7 @@ export default function Navbar() {
     try {
       const { data: { session } } = await supabase.auth.getSession();
 
-      const response = await fetch('http://localhost:3000/api/update-profile', {
+      const response = await fetch(`${import.meta.env.VITE_API_URL}/update-profile`, {
         method: 'PATCH',
         headers: {
           'Content-Type': 'application/json',

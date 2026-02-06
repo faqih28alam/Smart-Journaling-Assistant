@@ -5,7 +5,7 @@
 An intelligent journaling platform that doesn't just store your thoughts—it understands them. Using AI to "tidy up" messy thoughts, track emotional trends, and provide weekly insights to help you grow.
 
 # 🔗 Links
-* ![Live Demo:](https://smart-journaling-assistant.vercel.app/)
+* [Live Demo](https://smart-journaling-assistant.vercel.app/)
 
 # 📸 Screenshots
 * The Editor (AI Tidy-Up)

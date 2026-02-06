@@ -7,7 +7,7 @@ import cors from 'cors';
 
 // this only works on frontend, cant test with postman
 const corsMiddleware = cors({
-    origin: ['http://localhost:5173', 'smart-journaling-assistant.vercel.app'],      // ganti menyesuaikan URL front-end
+    origin: ['http://localhost:5173', 'smart-journaling-assistant.vercel.app/api'],      // ganti menyesuaikan URL front-end
     methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE'],
     allowedHeaders: ['Content-Type', 'Authorization'],  // set the allowed HTTP methods
     credentials: true,                                  // allow credentials

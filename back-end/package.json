@@ -2,12 +2,16 @@
   "name": "back-end",
   "version": "1.0.0",
   "description": "",
-  "main": "App.ts",
+  "main": "index.js",
   "scripts": {
+    "start": "node dist/app.js",
     "postinstall": "prisma generate",
-    "build": "prisma generate && tsc",
-    "dev": "ts-node-dev --respawn src/App.ts",
+    "build": "tsc",
+    "dev": "ts-node-dev --respawn src/app.ts",
     "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "engines": {
+    "node": ">=18.0.0"
   },
   "keywords": [],
   "author": "",

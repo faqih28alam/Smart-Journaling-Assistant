@@ -1,5 +1,5 @@
-// App.ts
-// src/App.ts
+// app.ts
+// src/app.ts
 
 import express, { Request, Response } from 'express';
 import appRoutes from './routes/app-route';
@@ -31,8 +31,8 @@ app.use((err: any, req: any, res: any, next: any) => {
 
 // Start server and listen on specified port
 const PORT = process.env.PORT || 3000;
-// app.listen(PORT, () => {
-//     console.log(`Backend Server running on http://localhost:${PORT}`);
-// });
+app.listen(PORT, () => {
+    console.log(`Backend Server running on Port ${PORT}`);
+});
 
-module.exports = app;
+export default app;

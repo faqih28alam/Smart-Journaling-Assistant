@@ -57,7 +57,7 @@ const Entry = () => {
         const toastId = toast.loading("AI is analyzing and tidying...");
 
         try {
-            const response = await fetch(`${import.meta.env.VITE_BACKEND_URL}/api/tidy`, {
+            const response = await fetch(`${import.meta.env.VITE_API_URL}/tidy`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ text: content })
@@ -94,7 +94,7 @@ const Entry = () => {
                 isTidied: useAiVersion
             };
 
-            const response = await fetch(`${import.meta.env.VITE_BACKEND_URL}/api/save-entry`, {
+            const response = await fetch(`${import.meta.env.VITE_API_URL}/save-entry`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify(payload)

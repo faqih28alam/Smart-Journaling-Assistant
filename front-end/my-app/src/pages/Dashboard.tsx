@@ -1,6 +1,4 @@
-// Dashborad.tsx
 // src/pages/Dashboard.tsx
-// This Page shows Stats: Number of entry, streaks count, etc.
 
 import { useState, useEffect } from 'react';
 import { Button } from "@/components/ui/button";
@@ -49,6 +47,14 @@ interface WeeklyInsight {
     endDate: string;
 }
 
+interface PaginationInfo {
+    currentPage: number;
+    totalPages: number;
+    totalEntries: number;
+    hasMore: boolean;
+    limit: number;
+}
+
 
 const Dashboard = () => {
     const [entries, setEntries] = useState<Entry[]>([]);
@@ -63,35 +69,58 @@ const Dashboard = () => {
     // Add state for search modal
     const [isSearchModalOpen, setIsSearchModalOpen] = useState(false);
 
+    // Pagination states
+    const [pagination, setPagination] = useState<PaginationInfo>({
+        currentPage: 1,
+        totalPages: 1,
+        totalEntries: 0,
+        hasMore: false,
+        limit: 10
+    });
+    const [isLoading, setIsLoading] = useState(false);
+    const [isLoadingMore, setIsLoadingMore] = useState(false);
+
+    const API_URL = import.meta.env.VITE_API_URL;
+
     // --- FETCH LOGIC ---
-    const fetchDashboardData = async () => {
+    const fetchDashboardData = async (page: number = 1) => {
         const { data: { user } } = await supabase.auth.getUser();
         if (!user) return;
 
-        // Fetch User Stats (Streak and Total Count)
-        const { data: userData, error: userError } = await supabase
-            .from('User')
-            .select('streakCount, totalEntries')
-            .eq('id', user.id)
-            .single();
+        setIsLoading(page === 1);
 
-        // Fetch Recent Entries
-        const { data: entriesData, error: entriesError } = await supabase
-            .from('Entry')
-            .select('*')
-            .eq('userId', user.id)
-            .order('createdAt', { ascending: false })
-            .limit(10); // Show only last 10
+        try {
+            const response = await fetch(`${API_URL}/dashboard?userId=${user.id}&page=${page}&limit=10`);
+            const data = await response.json();
 
-        if (!userError && userData) {
-            setStats({
-                count: userData.totalEntries || 0,
-                streak: userData.streakCount || 0
-            });
+            if (response.ok) {
+                if (page === 1) {
+                    setEntries(data.entries);
+                } else {
+                    setEntries(prev => [...prev, ...data.entries]);
+                }
+                setStats(data.stats);
+                // setWeeklyInsight(data.insight);
+                setPagination(data.pagination);
+            } else {
+                toast.error(data.error || 'Failed to load dashboard');
+            }
+        } catch (error) {
+            console.error('Dashboard fetch error:', error);
+            toast.error('Failed to load dashboard');
+        } finally {
+            setIsLoading(false);
+            setIsLoadingMore(false);
         }
-        if (!entriesError && entriesData) {
-            setEntries(entriesData);
-        }
+    };
+
+    // Load more entries
+    const loadMoreEntries = async () => {
+        if (!pagination.hasMore || isLoadingMore) return;
+
+        setIsLoadingMore(true);
+        const nextPage = pagination.currentPage + 1;
+        await fetchDashboardData(nextPage);
     };
 
     useEffect(() => {
@@ -121,23 +150,25 @@ const Dashboard = () => {
 
         try {
             const { data: { user } } = await supabase.auth.getUser();
-            const { error } = await supabase
-                .from('Entry')   // Start here
-                .delete()        // Action
-                .eq('id', id);   // Filter
+            if (!user) return;
 
-            if (!error) {
-                // Manually decrement the local count for immediate UI feedback
-                setStats(prev => ({ ...prev, count: prev.count - 1 }));
-                // Update the local state so the card disappears immediately
+            const response = await fetch(`${API_URL}/entries/${id}`, {
+                method: 'DELETE',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ userId: user.id })
+            });
+
+            if (response.ok) {
                 setEntries(prev => prev.filter(e => e.id !== id));
-
-                // Update database totalEntries
-                await supabase.rpc('decrement_total_entries', { user_id: user?.id });
+                setStats(prev => ({ ...prev, count: prev.count - 1 }));
+                toast.success("Entry deleted");
+            } else {
+                const data = await response.json();
+                toast.error(data.error || "Failed to delete");
             }
-            toast.success("Entry deleted");
         } catch (error: any) {
-            toast.error(error.message || "Failed to delete");
+            console.error('Delete error:', error);
+            toast.error("Failed to delete");
         }
     };
 
@@ -242,88 +273,6 @@ const Dashboard = () => {
                 </div>
             </section>
 
-            {/* Recent Entries */}
-            <section className="space-y-4">
-                {/* Header */}
-                <div className="flex items-center justify-between">
-                    <h2 className="text-sm font-semibold uppercase tracking-wider text-muted-foreground">
-                        📝 All Entries
-                    </h2>
-                    <Button
-                        variant="ghost"
-                        size="sm"
-                        className="text-xs gap-1 cursor-pointer"
-                        onClick={() => setIsSearchModalOpen(true)}
-                    >
-                        <Search className="w-3 h-3" />
-                        Search & Filter
-                    </Button>
-                </div>
-                {/* Entries */}
-                <div className="space-y-3">
-                    {entries.map((entry) => (
-                        <Card key={entry.id} className="relative group hover:border-indigo-200 transition-all">
-                            <CardContent className="p-4">
-                                {/* Date & Category */}
-                                <div className="flex justify-between items-start mb-2">
-                                    <span className="flex items-center gap-2 text-xs font-medium text-slate-400">
-                                        <Clock className="w-4 h-4" />
-                                        {new Date(entry.createdAt).toLocaleDateString()} at {new Date(entry.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
-                                    </span>
-                                    <Badge className={`text-[10px] uppercase font-bold px-2 py-0.5 border ${getCategoryColor(entry.category)}`}>
-                                        {entry.category || 'General'}
-                                    </Badge>
-                                </div>
-                                {/* Title */}
-                                <h3 className="text-md font-semibold mb-1 truncate">{entry.title}</h3>
-                                {/* Content */}
-                                <p className="text-sm font-medium italic line-clamp-3 mb-2">
-                                    {entry.isTidied ? entry.tidyContent : entry.rawContent}
-                                </p>
-                                {/* Mood Badge */}
-                                <div className="flex items-center gap-2">
-                                    <Badge className={`flex items-center gap-2 px-2 py-0.5 ${getMoodColor(entry.mood)}`}>
-                                        <div className="flex-shrink-0">
-                                            {getMoodIcon(entry.mood)}
-                                        </div>
-                                        <span className="capitalize text-sm font-medium">
-                                            {entry.mood?.toLowerCase() || 'Neutral'}
-                                        </span>
-                                    </Badge>
-                                </div>
-                            </CardContent>
-                            {/* Delete Button */}
-                            <Button
-                                variant="ghost"
-                                size="icon"
-                                className="absolute bottom-2 right-2 h-8 w-8 text-muted-foreground hover:text-destructive hover:bg-destructive/10 transition-colors cursor-pointer" onClick={() => handleDelete(entry.id)}
-                            >
-                                <Trash2 className="w-4 h-4" />
-                            </Button>
-                            {/* Edit Button */}
-                            <Button
-                                variant="ghost"
-                                size="icon"
-                                className="absolute bottom-2 right-12 h-8 w-8 text-muted-foreground hover:text-primary hover:bg-primary/10 cursor-pointer"
-                                onClick={() => handleEdit(entry)}
-                            >
-                                <Pencil className="w-4 h-4" />
-                            </Button>
-                        </Card>
-                    ))}
-                    {/* Edit Entry Modal */}
-                    <EditEntryModal
-                        entry={editingEntry}
-                        isOpen={isEditModalOpen}
-                        onClose={() => {
-                            setIsEditModalOpen(false);
-                            setEditingEntry(null);
-                        }}
-                        onSave={fetchDashboardData}
-                    />
-                </div>
-            </section>
-
             {/* AI Insights Card */}
             <Card className="bg-gradient-to-br from-indigo-600 to-violet-700 text-white border-none shadow-xl overflow-hidden relative">
                 <div className="absolute top-0 right-0 p-4 opacity-10">
@@ -383,6 +332,125 @@ const Dashboard = () => {
                     )}
                 </CardContent>
             </Card>
+
+            {/* Recent Entries */}
+            <section className="space-y-4">
+                <div className="flex items-center justify-between">
+                    <h2 className="text-sm font-semibold uppercase tracking-wider text-muted-foreground">
+                        📝 All Entries
+                    </h2>
+                    <Button
+                        variant="ghost"
+                        size="sm"
+                        className="text-xs gap-1 cursor-pointer"
+                        onClick={() => setIsSearchModalOpen(true)}
+                    >
+                        <Search className="w-3 h-3" />
+                        Search & Filter
+                    </Button>
+                </div>
+
+                {/* ✨ UPDATED: Show loading state */}
+                {isLoading ? (
+                    <Card className="p-8 text-center">
+                        <p className="text-muted-foreground">Loading entries...</p>
+                    </Card>
+                ) : entries.length === 0 ? (
+                    <Card className="p-8 text-center">
+                        <p className="text-muted-foreground mb-4">No entries yet. Start journaling!</p>
+                        <Link to="/entry">
+                            <Button>
+                                <Plus className="w-4 h-4 mr-2" /> Create First Entry
+                            </Button>
+                        </Link>
+                    </Card>
+                ) : (
+                    <>
+                        <div className="space-y-3">
+                            {entries.map((entry) => (
+                                <Card key={entry.id} className="relative group hover:border-indigo-200 transition-all">
+                                    {/* Keep all your existing card content exactly as is */}
+                                    <CardContent className="p-4">
+                                        <div className="flex justify-between items-start mb-2">
+                                            <span className="flex items-center gap-2 text-xs font-medium text-slate-400">
+                                                <Clock className="w-4 h-4" />
+                                                {new Date(entry.createdAt).toLocaleDateString()} at {new Date(entry.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                                            </span>
+                                            <Badge className={`text-[10px] uppercase font-bold px-2 py-0.5 border ${getCategoryColor(entry.category)}`}>
+                                                {entry.category || 'General'}
+                                            </Badge>
+                                        </div>
+                                        <h3 className="text-md font-semibold mb-1 truncate">{entry.title}</h3>
+                                        <p className="text-sm font-medium italic line-clamp-3 mb-2">
+                                            {entry.isTidied ? entry.tidyContent : entry.rawContent}
+                                        </p>
+                                        <div className="flex items-center gap-2">
+                                            <Badge className={`flex items-center gap-2 px-2 py-0.5 ${getMoodColor(entry.mood)}`}>
+                                                <div className="flex-shrink-0">
+                                                    {getMoodIcon(entry.mood)}
+                                                </div>
+                                                <span className="capitalize text-sm font-medium">
+                                                    {entry.mood?.toLowerCase() || 'Neutral'}
+                                                </span>
+                                            </Badge>
+                                        </div>
+                                    </CardContent>
+                                    <Button
+                                        variant="ghost"
+                                        size="icon"
+                                        className="absolute bottom-2 right-2 h-8 w-8 text-muted-foreground hover:text-destructive hover:bg-destructive/10 transition-colors cursor-pointer"
+                                        onClick={() => handleDelete(entry.id)}
+                                    >
+                                        <Trash2 className="w-4 h-4" />
+                                    </Button>
+                                    <Button
+                                        variant="ghost"
+                                        size="icon"
+                                        className="absolute bottom-2 right-12 h-8 w-8 text-muted-foreground hover:text-primary hover:bg-primary/10 cursor-pointer"
+                                        onClick={() => handleEdit(entry)}
+                                    >
+                                        <Pencil className="w-4 h-4" />
+                                    </Button>
+                                </Card>
+                            ))}
+                        </div>
+
+                        {/* ✨ NEW: Load More Button */}
+                        {pagination.hasMore && (
+                            <div className="text-center pt-4">
+                                <Button
+                                    onClick={loadMoreEntries}
+                                    disabled={isLoadingMore}
+                                    variant="outline"
+                                    className="cursor-pointer"
+                                >
+                                    {isLoadingMore
+                                        ? 'Loading...'
+                                        : `Load More (${pagination.totalEntries - entries.length} remaining)`
+                                    }
+                                </Button>
+                            </div>
+                        )}
+
+                        {/* ✨ NEW: Entry count */}
+                        <div className="text-center text-xs text-muted-foreground">
+                            Showing {entries.length} of {pagination.totalEntries} entries
+                        </div>
+                    </>
+                )}
+
+                <EditEntryModal
+                    entry={editingEntry}
+                    isOpen={isEditModalOpen}
+                    onClose={() => {
+                        setIsEditModalOpen(false);
+                        setEditingEntry(null);
+                    }}
+                    onSave={() => fetchDashboardData(1)}
+                />
+            </section>
+
+
             {/* Search & Filter Modal */}
             <SearchEntryModal
                 isOpen={isSearchModalOpen}

@@ -3,6 +3,7 @@
 
 import express, { Request, Response } from 'express';
 import appRoutes from './routes/app-route';
+import entryRoutes from './routes/entry-route'
 import corsMiddleware from './middlewares/cors';
 import path from 'path';
 
@@ -15,6 +16,7 @@ app.use(corsMiddleware);
 
 // Routes
 app.use('/api', appRoutes);
+app.use('/api', entryRoutes);
 // Add this above your global error handler
 app.get('/', (req, res) => {
     res.send('Backend Server is running! Use /api for routes.');
